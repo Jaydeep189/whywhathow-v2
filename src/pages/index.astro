@@ -1,17 +1,83 @@
 ---
+import Layout from "../layouts/Layout.astro";
+import { client } from "../lib/sanity";
 
+const posts = await client.fetch(
+  `*[_type == "post"] | order(publishedAt desc) {
+    title,
+    slug,
+    publishedAt,
+    "categories": categories[]->title
+  }`
+);
+
+// Group posts by year
+const grouped: Record<string, typeof posts> = {};
+for (const post of posts) {
+  const year = post.publishedAt
+    ? new Date(post.publishedAt).getFullYear().toString()
+    : "Undated";
+  if (!grouped[year]) grouped[year] = [];
+  grouped[year].push(post);
+}
+const years = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+  });
+}
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <!-- Hero: Logo -->
+  <header class="flex flex-col items-center pt-8 pb-20">
+    <img
+      src="/logo-transparent-black.png"
+      alt="whywhathow"
+      class="w-64 md:w-80 animate-fade-up dark:hidden"
+    />
+    <img
+      src="/logo-transparent-white.png"
+      alt="whywhathow"
+      class="w-64 md:w-80 animate-fade-up hidden dark:block"
+    />
+  </header>
+
+  <!-- Post listing -->
+  <section>
+    {years.map((year, yi) => (
+      <div class="mb-14">
+        <h2
+          class="font-[family-name:var(--font-sans)] text-sm font-medium text-[var(--color-muted)] mb-4 tracking-wider uppercase animate-fade-up"
+          style={`animation-delay: ${yi * 80}ms`}
+        >
+          {year}
+        </h2>
+        <div class="border-t border-[var(--color-rule)]">
+          {grouped[year].map((post: any, pi: number) => (
+            <a
+              href={`/blog/${post.slug?.current}`}
+              class="group flex items-baseline justify-between py-4 border-b border-[var(--color-rule)] hover:bg-[var(--color-tag-bg)] -mx-3 px-3 rounded-sm transition-colors animate-fade-up"
+              style={`animation-delay: ${yi * 80 + (pi + 1) * 60}ms`}
+            >
+              <span class="text-[var(--color-ink)] group-hover:text-[var(--color-ink)] text-base leading-snug pr-4">
+                {post.title}
+              </span>
+              <span class="font-[family-name:var(--font-sans)] text-sm text-[var(--color-muted)] whitespace-nowrap shrink-0">
+                {post.publishedAt ? formatDate(post.publishedAt) : ""}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
+  </section>
+
+  {posts.length === 0 && (
+    <p class="text-center text-[var(--color-muted)] py-20 font-[family-name:var(--font-sans)]">
+      No posts yet. Add some in your Sanity Studio.
+    </p>
+  )}
+</Layout>

@@ -1,0 +1,99 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "whywhathow", description = "Personal writing by Jaydeep" } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link id="favicon-svg" rel="icon" type="image/svg+xml" href="/favicon-light.svg" />
+    <!-- <link rel="icon" href="/favicon.ico" /> -->
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <!-- Prevent flash: apply saved theme before paint -->
+    <script is:inline>
+      (function () {
+        const saved = localStorage.getItem("theme");
+        const dark = saved === "dark";
+        if (dark) {
+          document.documentElement.classList.add("dark");
+          const fav = document.getElementById("favicon-svg");
+          if (fav) fav.setAttribute("href", "/favicon-dark.svg");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="mx-auto max-w-2xl px-6 py-8">
+      <!-- Nav -->
+      <nav class="flex items-center justify-between font-[family-name:var(--font-sans)] text-sm mb-16">
+        <a href="/" class="text-[var(--color-ink)] font-medium tracking-wide hover:opacity-60 transition-opacity">
+          whywhathow
+        </a>
+        <div class="flex items-center gap-5 text-[var(--color-muted)]">
+          <a href="https://www.linkedin.com/in/jaydeep-sharma-zerobitcode" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--color-ink)] transition-colors">LinkedIn</a>
+          <a href="https://github.com/Jaydeep189" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--color-ink)] transition-colors">GitHub</a>
+          <a href="https://instagram.com/whywhathowblog" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--color-ink)] transition-colors">Instagram</a>
+          <a href="https://x.com/Jaydeep_189" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--color-ink)] transition-colors">X</a>
+          <!-- Theme toggle -->
+          <button
+            id="theme-toggle"
+            aria-label="Toggle dark mode"
+            class="hover:text-[var(--color-ink)] transition-colors cursor-pointer"
+          >
+            <!-- Sun (shown in dark mode) -->
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+            <!-- Moon (shown in light mode) -->
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <main>
+        <slot />
+      </main>
+
+      <!-- Footer -->
+      <footer class="mt-24 pt-8 border-t border-[var(--color-rule)] pb-12">
+        <p class="font-[family-name:var(--font-sans)] text-xs text-[var(--color-muted)] text-center">
+          &copy; {new Date().getFullYear()} whywhathow
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const toggle = document.getElementById("theme-toggle");
+      const sun = document.getElementById("icon-sun");
+      const moon = document.getElementById("icon-moon");
+      const html = document.documentElement;
+
+      function applyTheme(dark: boolean) {
+        html.classList.toggle("dark", dark);
+        sun!.classList.toggle("hidden", !dark);
+        moon!.classList.toggle("hidden", dark);
+        localStorage.setItem("theme", dark ? "dark" : "light");
+        const favicon = document.getElementById("favicon-svg") as HTMLLinkElement | null;
+        if (favicon) favicon.href = dark ? "/favicon-dark.svg" : "/favicon-light.svg";
+      }
+
+      // Set initial icon state
+      applyTheme(html.classList.contains("dark"));
+
+      toggle!.addEventListener("click", () => {
+        applyTheme(!html.classList.contains("dark"));
+      });
+    </script>
+  </body>
+</html>

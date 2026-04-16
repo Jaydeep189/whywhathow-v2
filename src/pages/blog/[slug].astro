@@ -1,0 +1,92 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { PortableText } from "astro-portabletext";
+import { client, urlFor } from "../../lib/sanity";
+
+export async function getStaticPaths() {
+  const posts = await client.fetch(
+    `*[_type == "post" && defined(slug.current)] {
+      slug
+    }`
+  );
+
+  return posts.map((post: any) => ({
+    params: { slug: post.slug.current },
+  }));
+}
+
+const { slug } = Astro.params;
+
+const post = await client.fetch(
+  `*[_type == "post" && slug.current == $slug][0] {
+    title,
+    publishedAt,
+    body,
+    mainImage,
+    "categories": categories[]->title,
+    "author": author->name
+  }`,
+  { slug }
+);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+---
+
+<Layout title={`${post.title} — whywhathow`}>
+  <article>
+    <!-- Back link -->
+    <a
+      href="/"
+      class="inline-flex items-center gap-1 font-[family-name:var(--font-sans)] text-sm text-[var(--color-muted)] hover:text-[var(--color-ink)] transition-colors mb-12"
+    >
+      &larr; Back
+    </a>
+
+    <!-- Header -->
+    <header class="mb-12 animate-fade-up">
+      <h1 class="text-3xl md:text-4xl font-semibold leading-tight mb-4">
+        {post.title}
+      </h1>
+      <div class="flex items-center gap-3 font-[family-name:var(--font-sans)] text-sm text-[var(--color-muted)]">
+        {post.publishedAt && <time>{formatDate(post.publishedAt)}</time>}
+        {post.categories && post.categories.length > 0 && (
+          <>
+            <span>&middot;</span>
+            <div class="flex gap-2">
+              {post.categories.map((cat: string) => (
+                <span class="bg-[var(--color-tag-bg)] text-[var(--color-tag-text)] px-2 py-0.5 rounded text-xs">
+                  {cat}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </header>
+
+    <!-- Main image -->
+    {post.mainImage && (
+      <img
+        src={urlFor(post.mainImage).width(1200).url()}
+        alt={post.title}
+        class="w-full rounded-sm mb-12 animate-fade-up"
+        style="animation-delay: 100ms"
+      />
+    )}
+
+    <!-- Body -->
+    <div class="prose animate-fade-up" style="animation-delay: 150ms">
+      <PortableText value={post.body} />
+    </div>
+  </article>
+</Layout>
