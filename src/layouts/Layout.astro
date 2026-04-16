@@ -43,6 +43,8 @@ const canonicalURL = Astro.url.href;
     <meta name="twitter:description" content={description} />
     {image && <meta name="twitter:image" content={image} />}
     <slot name="head" />
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9898817202976739" crossorigin="anonymous"></script>
     <!-- Prevent flash: apply saved theme before paint -->
     <script is:inline>
       (function () {
